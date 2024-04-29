@@ -2,3 +2,4 @@ credentials.json
 token.json
 /output
 notes.md
+__pycache__
