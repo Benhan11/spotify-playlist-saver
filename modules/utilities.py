@@ -10,17 +10,14 @@ def get_credentials():
     cred_f = open('credentials.json')
     cred_data = json.load(cred_f)
 
-    return {
-        'client_id': cred_data['client_id'],
-        'client_secret': cred_data['client_secret']
-    }
+    return cred_data
 
 
 def get_stored_token():
     token_f = open('token.json')
     token_data = json.load(token_f)
 
-    return token_data['access_token']
+    return token_data
 
 
 def save_token(access_token):

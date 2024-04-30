@@ -15,9 +15,11 @@ credentials = utilities.get_credentials()
 
 user_code = None
 access_token = None
+authorization_header = None
 
 SPOTIFY_AUTHORIZATION_ENDPOINT = 'https://accounts.spotify.com/authorize'
 SPOTIFY_GET_PLAYLISTS_ENDPOINT = 'https://api.spotify.com/v1/me/playlists'
+SPOTIFY_GET_PLAYLIST_ITEMS_ENDPOINT = lambda id: f'https://api.spotify.com/v1/playlists/{id}/tracks'
 SPOTIFY_TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token'
 REDIRECT_URI = 'http://localhost:8888/callback'
 
@@ -29,92 +31,6 @@ SCOPES = 'playlist-read-private'
 playlist_urls = []
 playlist_tracks = []
 formatted_playlists = []
-
-
-## Get all playlists
-def get_all_playlist_urls(url):
-    global playlist_urls
-    
-    response = requests.get(
-        url,
-        headers = headers
-    )
-    json_resp = response.json()
-    print(json_resp)
-
-    # Collect href from this response
-    for item in json_resp['items']:
-        playlist_urls.append(item['href'])
-
-    # Make another request if there are more playlists
-    if json_resp['next'] != None:
-        return get_all_playlist_urls(json_resp['next'])
-    else:
-        return playlist_urls
-
-
-## Get a playlist
-def get_playlist(url):
-    response = requests.get(
-        url,
-        headers = headers
-    )
-    json_resp = response.json()
-    
-    tracks = get_playlist_tracks(json_resp['tracks'])
-
-    formatted = {
-        'name': json_resp['name'],
-        'description': json_resp['description'],
-        'owner.id': json_resp['owner']['id'],
-        'owner.display_name': json_resp['owner']['display_name'],
-        'href': json_resp['href'],
-        'tracks.total': json_resp['tracks']['total'],
-        'tracks': tracks
-    }
-
-    return formatted
-
-
-## Get playlist tracks
-#  Formats data and makes additional requests if necessary
-def get_playlist_tracks(tracks):
-    global playlist_tracks
-    
-    for item in tracks['items']:
-        artists = list(map(get_artist_name, item['track']['artists']))
-
-        playlist_tracks.append({
-            'name': item['track']['name'],
-            'album': item['track']['album']['name'],
-            'artists': artists,
-            'added_at': item['added_at'],
-            'added_by': item['added_by']['id']
-        })
-    
-    # If there are more tracks
-    if tracks['next'] != None:
-        # Make a new request
-        response = requests.get(
-            tracks['next'],
-            headers = headers
-        )
-        json_resp = response.json()
-
-        # Get the next set of tracks
-        return get_playlist_tracks(json_resp)
-
-    else:
-        tracks = playlist_tracks.copy()
-        playlist_tracks = []
-        return tracks
-    
-
-## Gather only name of the artist
-def get_artist_name(artist):
-    return {
-        'name': artist['name']
-    }
 
 
 
@@ -138,15 +54,10 @@ def main():
 
 
 
-
-
-
 ### Requests
 
-def fetch_and_save_access_token():
+def fetch_access_token():
     global credentials
-
-    print(credentials)
 
     headers = {
         'Authorization': 'Basic ' + base64.b64encode(f'{credentials["client_id"]}:{credentials["client_secret"]}'.encode()).decode(),
@@ -163,10 +74,59 @@ def fetch_and_save_access_token():
     global access_token
 
     try:
-        access_token = response.json()['access_token']
-        utilities.save_token()
+        return response.json()['access_token']
     except:
-        access_token = None
+        return None
+
+
+def fetch_playlists(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
+    response = requests.get(url, headers=authorization_header)
+
+    if not response.ok:
+        return []
+    
+    data = response.json()
+
+    for item in data['items']:
+        items.append({
+            'name': item['name'],
+            'owner': item['owner']['display_name'],
+            'description': item['description'],
+            'images': item['images'],
+            'id': item['id']
+        })
+
+    if data['next']:
+        return fetch_playlists(url=data['next'], items=items)
+    
+    return items
+
+
+def fetch_playlist_items(id=None, url=None, items=[]):
+    if id:
+        url = SPOTIFY_GET_PLAYLIST_ITEMS_ENDPOINT(id)
+
+    response = requests.get(url, headers=authorization_header)
+
+    if not response.ok:
+        return []
+    
+    data = response.json()
+
+    for item in data['items']:
+        items.append({
+            'name': item['track']['name'],
+            'album': item['track']['album']['name'],
+            'artists': list(map(lambda artist: artist['name'], item['track']['artists'])),
+            'added_at': item['added_at'],
+            'added_by': item['added_by']['id'],
+            'id': item['track']['id']
+        })
+
+    if data['next']:
+        return fetch_playlist_items(url=data['next'], items=items)
+
+    return items
 
 
 
@@ -174,7 +134,7 @@ def fetch_and_save_access_token():
 
 @app.route('/')
 def index():
-    if not user_code:
+    if not user_code or not access_token:
         return redirect('/authorize')
     
     return render_template('home_page.html')
@@ -198,7 +158,7 @@ def authorize_user():
     }
 
     auth_url = f'{SPOTIFY_AUTHORIZATION_ENDPOINT}?{urllib.parse.urlencode(query_params)}'
-    return(redirect(auth_url))
+    return redirect(auth_url)
 
 
 @app.route('/callback')
@@ -212,7 +172,16 @@ def callback():
         global user_code
         user_code = code
         
-    fetch_and_save_access_token()
+    global access_token
+    access_token = fetch_access_token()
+
+    if access_token != None:
+        global authorization_header
+        
+        authorization_header = { 'Authorization': f'Bearer {access_token}' }
+        utilities.save_token(access_token)
+    else:
+        return render_template('error_page.html')
 
     return redirect('/')
 
