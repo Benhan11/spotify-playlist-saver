@@ -4,8 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify playlist saver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
-<body>
-    <div>Hello World</div>
+<body data-bs-theme="dark">
+    <div class="container">
+        <div class="row mt-5 mb-3">
+            <div class="col-auto d-flex flex-column justify-content-center align-items-center">
+                <img src="static/images/spotify_icon.png" width="64px" height="64px"/>
+            </div>
+            <div class="col">
+                <h1>Spotify playlist saver</h1>
+                <p class="text-white-50">{{ playlists | length }} playlists gathered.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {% for item in playlists %}
+                    <div class="row p-2 mb-2 border rounded shadow">
+                        <div class="col-auto d-flex flex-column justify-content-center align-items-center">
+                            <span class="text-end" style="width: 16px">{{ loop.index }}</span>
+                        </div>
+                        <div class="col-auto d-flex flex-column justify-content-center align-items-center">
+                            {% if item.images and item.images[0] %}
+                                <img src="{{ item.images[0].url }}" width="36px" height="36px" />
+                            {% else %}
+                                <div style="width:36px; height:36px;"></div>
+                            {% endif %}
+                        </div>
+                        <div class="col ps-3">
+                            <div class="row">{{ item.name }}</div>
+                            <div class="row text-white-50" style="font-size: 14px">{{ item.owner }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>
