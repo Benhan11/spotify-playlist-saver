@@ -27,30 +27,23 @@ SCOPES = 'playlist-read-private'
 
 
 
-## The data to be formatted and returned from the script
-playlist_urls = []
-playlist_tracks = []
-formatted_playlists = []
-
-
-
 ## Main
-def main():
-    global playlist_urls, formatted_playlists
+# def main():
+#     global playlist_urls, formatted_playlists
 
-    playlist_urls = get_all_playlist_urls(SPOTIFY_GET_PLAYLISTS_ENDPOINT)
+#     playlist_urls = get_all_playlist_urls(SPOTIFY_GET_PLAYLISTS_ENDPOINT)
 
-    for playlist_url in playlist_urls:
-        playlist = get_playlist(playlist_url)
-        formatted_playlists.append(playlist)
+#     for playlist_url in playlist_urls:
+#         playlist = get_playlist(playlist_url)
+#         formatted_playlists.append(playlist)
 
-    for playlist in formatted_playlists:
-        f = open('output/{0}_{1}.json'.format(
-                playlist['name'].replace('/', ' and ').replace('\"', '_'),
-                date.today().strftime('%Y-%m-%d')
-            ), 'w')
-        f.write(json.dumps(playlist))
-        f.close()
+#     for playlist in formatted_playlists:
+#         f = open('output/{0}_{1}.json'.format(
+#                 playlist['name'].replace('/', ' and ').replace('\"', '_'),
+#                 date.today().strftime('%Y-%m-%d')
+#             ), 'w')
+#         f.write(json.dumps(playlist))
+#         f.close()
 
 
 
@@ -80,6 +73,10 @@ def fetch_access_token():
 
 
 def fetch_playlists(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
+    # Ensure items gets reset each time this function is called anew
+    if url == SPOTIFY_GET_PLAYLISTS_ENDPOINT:
+        items = []
+    
     response = requests.get(url, headers=authorization_header)
 
     if not response.ok:
@@ -137,7 +134,9 @@ def index():
     if not user_code or not access_token:
         return redirect('/authorize')
     
-    return render_template('home_page.html')
+    playlists = fetch_playlists()
+
+    return render_template('home_page.html', playlists=playlists)
 
 
 @app.route('/authorize')
