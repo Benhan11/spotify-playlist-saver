@@ -1,4 +1,4 @@
 *.json
-/output
+/output/*
 notes.md
 __pycache__

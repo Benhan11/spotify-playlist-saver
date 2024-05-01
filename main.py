@@ -3,7 +3,6 @@ from flask import Flask, request, redirect, render_template
 import requests
 import urllib.parse
 import base64
-from datetime import date
 
 
 
@@ -27,24 +26,9 @@ REDIRECT_URI = 'http://localhost:8888/callback'
 SCOPES = 'user-read-private user-read-email playlist-read-private'
 
 
-
-## Main
-# def main():
-#     global playlist_urls, formatted_playlists
-
-#     playlist_urls = get_all_playlist_urls(SPOTIFY_GET_PLAYLISTS_ENDPOINT)
-
-#     for playlist_url in playlist_urls:
-#         playlist = get_playlist(playlist_url)
-#         formatted_playlists.append(playlist)
-
-#     for playlist in formatted_playlists:
-#         f = open('output/{0}_{1}.json'.format(
-#                 playlist['name'].replace('/', ' and ').replace('\"', '_'),
-#                 date.today().strftime('%Y-%m-%d')
-#             ), 'w')
-#         f.write(json.dumps(playlist))
-#         f.close()
+### Instance variables
+fetched_user = None
+fetched_playlists_metadata = None
 
 
 
@@ -88,7 +72,7 @@ def fetch_user():
 
 
 
-def fetch_playlists(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
+def fetch_playlists_metadata(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
     # Ensure items gets reset each time this function is called anew
     if url == SPOTIFY_GET_PLAYLISTS_ENDPOINT:
         items = []
@@ -110,7 +94,7 @@ def fetch_playlists(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
         })
 
     if data['next']:
-        return fetch_playlists(url=data['next'], items=items)
+        return fetch_playlists_metadata(url=data['next'], items=items)
     
     return items
 
@@ -118,6 +102,7 @@ def fetch_playlists(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
 def fetch_playlist_items(id=None, url=None, items=[]):
     if id:
         url = SPOTIFY_GET_PLAYLIST_ITEMS_ENDPOINT(id)
+        items = []
 
     response = requests.get(url, headers=authorization_header)
 
@@ -150,10 +135,26 @@ def index():
     if not user_code or not access_token:
         return redirect('/authorize')
     
-    user = fetch_user()
-    playlists = fetch_playlists()
+    global fetched_user, fetched_playlists_metadata
 
-    return render_template('home_page.html', user=user, playlists=playlists)
+    fetched_user = fetch_user()
+    fetched_playlists_metadata = fetch_playlists_metadata()
+
+    return render_template('home_page.html', user=fetched_user, playlists=fetched_playlists_metadata)
+
+
+@app.route('/backup')
+def backup():
+    if not user_code or not access_token:
+        return redirect('/authorize')
+
+    global fetched_playlists_metadata
+
+    for playlist in fetched_playlists_metadata:
+        items = fetch_playlist_items(playlist['id'])
+        utilities.save_playlist(playlist, items)
+
+    return render_template('success_page.html')
 
 
 @app.route('/authorize')
