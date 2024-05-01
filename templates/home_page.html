@@ -14,11 +14,11 @@
             </div>
             <div class="col">
                 <h1>Spotify playlist saver</h1>
-                <div class="text-white-50">{{ playlists | length }} playlists gathered.</div>
+                <div class="text-white-50">{{ playlists | length }} playlists gathered</div>
             </div>
         </div>
         <div class="row">
-            <div class="col">
+            <div class="col-6">
                 {% for item in playlists %}
                     <div class="row p-2 mb-2 border rounded shadow">
                         <div class="col-auto d-flex flex-column justify-content-center align-items-center">
@@ -37,6 +37,27 @@
                         </div>
                     </div>
                 {% endfor %}
+            </div>
+            <div class="col-6 d-flex flex-column align-items-center">
+                <div class="row p-4 mt-5 border rounded shadow position-fixed" style="width: 300px">
+                    <div class="col">
+                        <div class="row">
+                            <p class="text-white-50 mb-0" style="font-size: 12px">User</p>
+                            <p class="fs-5">spotify.user</p>
+                            <p class="text-white-50 mb-0" style="font-size: 12px">Playlists</p>
+                            <p class="fs-6">{{ playlists | length }}</p>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col">
+                                <a class="btn btn-outline-success shadow" href="/" role="button" style="width:100px">Refresh</a>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-success shadow" type="submit" style="width:100px">Backup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
