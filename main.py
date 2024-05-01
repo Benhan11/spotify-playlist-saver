@@ -18,12 +18,13 @@ access_token = None
 authorization_header = None
 
 SPOTIFY_AUTHORIZATION_ENDPOINT = 'https://accounts.spotify.com/authorize'
+SPOTIFY_GET_USER_ENDPOINT = 'https://api.spotify.com/v1/me'
 SPOTIFY_GET_PLAYLISTS_ENDPOINT = 'https://api.spotify.com/v1/me/playlists'
 SPOTIFY_GET_PLAYLIST_ITEMS_ENDPOINT = lambda id: f'https://api.spotify.com/v1/playlists/{id}/tracks'
 SPOTIFY_TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token'
 REDIRECT_URI = 'http://localhost:8888/callback'
 
-SCOPES = 'playlist-read-private'
+SCOPES = 'user-read-private user-read-email playlist-read-private'
 
 
 
@@ -70,6 +71,21 @@ def fetch_access_token():
         return response.json()['access_token']
     except:
         return None
+
+
+def fetch_user():
+    response = requests.get(SPOTIFY_GET_USER_ENDPOINT, headers=authorization_header)
+
+    if not response.ok:
+        return None
+    
+    data = response.json()
+
+    return {
+        'display_name': data['display_name'],
+        'images': data['images']
+    }
+
 
 
 def fetch_playlists(url=SPOTIFY_GET_PLAYLISTS_ENDPOINT, items=[]):
@@ -134,9 +150,10 @@ def index():
     if not user_code or not access_token:
         return redirect('/authorize')
     
+    user = fetch_user()
     playlists = fetch_playlists()
 
-    return render_template('home_page.html', playlists=playlists)
+    return render_template('home_page.html', user=user, playlists=playlists)
 
 
 @app.route('/authorize')
