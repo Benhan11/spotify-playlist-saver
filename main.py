@@ -1,5 +1,5 @@
 from modules import utilities
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, jsonify
 import requests
 import urllib.parse
 import base64
@@ -130,7 +130,7 @@ def fetch_playlist_items(id=None, url=None, items=[]):
 
 ### Routes
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     if not user_code or not access_token:
         return redirect('/authorize')
@@ -143,7 +143,7 @@ def index():
     return render_template('home_page.html', user=fetched_user, playlists=fetched_playlists_metadata)
 
 
-@app.route('/backup')
+@app.route('/', methods=['POST'])
 def backup():
     if not user_code or not access_token:
         return redirect('/authorize')
@@ -154,7 +154,7 @@ def backup():
         items = fetch_playlist_items(playlist['id'])
         utilities.save_playlist(playlist, items)
 
-    return render_template('success_page.html')
+    return jsonify({'message': 'Playlists saved.'})
 
 
 @app.route('/authorize')
