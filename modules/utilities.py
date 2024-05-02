@@ -1,3 +1,31 @@
+"""
+Utilitiy module containing all functionality NOT pertaining to the running of 
+the main app.
+
+This module provides functions for reading and saving Spotify credentials and 
+access tokens, as well as saving playlists and their items to JSON files.
+
+Usage:
+    import utilities
+
+    # Get credentials
+    credentials = utilities.get_credentials()
+
+    # Get stored token
+    token = utilities.get_stored_token()
+
+    # Save token
+    utilities.save_token('access_token')
+
+    # Save playlist
+    playlist = {...}  # Playlist metadata
+    items = [...]  # List of playlist tracks
+    utilities.save_playlist(playlist, items)
+
+    # Generate random string
+    random_string = utilities.generate_random_string(16)
+"""
+
 import random
 import string
 import json
