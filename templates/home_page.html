@@ -17,6 +17,7 @@
             <p>All playlists have been successfully saved.</p>
             <button type="button" onclick="$('#dismissableAlert').hide()" class="btn-close"></button>
         </div>
+
         <div class="row mt-5 mb-5">
             <div class="col-auto d-flex flex-column justify-content-center align-items-center">
                 <img src="static/icons/spotify_icon.svg" width="64px" height="64px"/>
@@ -27,28 +28,8 @@
             </div>
         </div>
         <div class="row mb-5">
-            <div class="col-6">
-                {% for item in playlists %}
-                    <div class="row p-2 mb-2 border rounded shadow">
-                        <div class="col-auto d-flex justify-content-center align-items-center">
-                            <span class="text-end" style="width: 16px">{{ loop.index }}</span>
-                        </div>
-                        <div class="col-auto d-flex justify-content-center align-items-center">
-                            {% if item.images and item.images[0] %}
-                                <img src="{{ item.images[0].url }}" width="36px" height="36px" />
-                            {% else %}
-                                <div style="width:36px; height:36px;"></div>
-                            {% endif %}
-                        </div>
-                        <div class="col ps-3">
-                            <div class="row">{{ item.name }}</div>
-                            <div class="row text-white-50" style="font-size: 14px">{{ item.owner }}</div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="col-6 d-flex flex-column align-items-center">
-                <div class="row p-4 mt-5 border rounded shadow position-fixed" style="width: 300px">
+            <div class="col-md-6 order-md-2 d-flex flex-column align-items-center mb-5">
+                <div id="user_tablet" class="row p-4 mt-5 border rounded shadow" style="width: 300px">
                     <div class="col">
                         <div class="row">
                             {% if user and user.images[1] %}
@@ -79,6 +60,26 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 order-md-1">
+                {% for item in playlists %}
+                    <div class="row ms-2 me-2 p-2 mb-2 border rounded shadow">
+                        <div class="col-auto d-flex justify-content-center align-items-center">
+                            <span class="text-end" style="width: 16px">{{ loop.index }}</span>
+                        </div>
+                        <div class="col-auto d-flex justify-content-center align-items-center">
+                            {% if item.images and item.images[0] %}
+                                <img src="{{ item.images[0].url }}" width="36px" height="36px" />
+                            {% else %}
+                                <div style="width:36px; height:36px;"></div>
+                            {% endif %}
+                        </div>
+                        <div class="col ps-3">
+                            <div class="row">{{ item.name }}</div>
+                            <div class="row text-white-50" style="font-size: 14px">{{ item.owner }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </body>
@@ -96,4 +97,11 @@
         });
     });
 </script>
+<style>
+    @media (min-width: 768px) {
+        #user_tablet {
+            position: fixed;
+        }
+    }
+</style>
 </html>
