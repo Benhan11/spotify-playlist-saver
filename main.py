@@ -3,6 +3,7 @@ from flask import Flask, request, redirect, render_template, jsonify
 import requests
 import urllib.parse
 import base64
+import sys
 
 
 
@@ -306,4 +307,7 @@ def callback():
 
 ### Entry point
 if __name__ == '__main__':
-    app.run(port=8888, debug=True)
+    if len(sys.argv) > 1:
+        app.run(host=sys.argv[1], port=8888, debug=False)
+    else:
+        app.run(port=8888, debug=False)

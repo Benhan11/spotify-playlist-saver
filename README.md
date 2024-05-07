@@ -28,16 +28,31 @@ git clone https://github.com/Benhan11/spotify-playlist-saver
 }
 ```
 
-3. **Install dependencies**
+3. **(Docker) Build Docker image**
 ```
-pip install Flask==3.0.3
-pip install requests==2.28.2
+docker build -t spotify-playlist-saver .
+```
+
+3. **(Without Docker) Install dependencies**
+```
+pip install -r requirements.txt
 ```
 
 ## Usage
+**(Docker) Run Docker container**
+```
+docker run --name spotify-playlist-saver -p 8888:8888 spotify-playlist-saver
+```
+
+**(Without Docker) Run Flask**
 ```
 py .\main.py
 ```
+
+The application can now be access at `http://localhost:8888`
+
+*Docker Note* Generated backups can be found at `/app/output/` within the container.
+
 
 ## Dependencies
 - Flask (v3.0.3)
